@@ -101,3 +101,64 @@ FROM
 CTE
 WHERE
 rownum > 1
+
+Case Study 2 -
+
+question#1
+
+SELECT DATE_TRUNC('week', e.occurred_at),
+       COUNT(DISTINCT e.user_id) AS weekly_active_users
+FROM tutorial.yammer_events e
+WHERE e.event_type = 'engagement'
+  AND e.event_name = 'login'
+GROUP BY 1
+ORDER BY 1 
+
+question#2
+
+SELECT
+  EXTRACT('month' from occurred_at) as month,
+  count(DISTINCT user_id) as num_users
+FROM tutorial.yammer_events
+WHERE event_type = 'engagement'
+GROUP BY month
+
+question#4
+
+SELECT DATE_TRUNC(‘week’, occurred_at) AS week,
+ COUNT(DISTINCT user_id) AS active_weekly_user,
+ SUM(CASE WHEN device IN(‘iphone 5’,’samsung galaxy s4', ‘nexus 5’, ‘iphone 5s’, ‘iphone 4s’,’nexus 7',
+ ‘nokia lumia 635’,’nexus 10',’htc one’,’amazon fire phone’,’samsung galaxy note’) THEN 1 ELSE 0 END) 
+ AS phone_users,
+ SUM(CASE WHEN device IN(‘ipad air’,’ipad mini’, ‘kindle fire’, ‘samsung galaxy tablet’) THEN 1 ELSE 0 END) 
+ AS tablet_users,
+ SUM(CASE WHEN device IN(‘lenovo thinkpad’,’macbook pro’,’macbook air’,’dell inspiron desktop’,
+ ‘dell inspiron notebok’,’asus chromebook’,’acer aspire notebook’,’hp pavilion desktop’,
+ ‘acer aspire desktop’,’windows surface’,’mac mini’) THEN 1 ELSE 0 END) 
+ AS computer_users
+FROM tutorial.yammer_events
+WHERE event_type = ‘engagement’
+AND event_name = ‘login’
+GROUP BY 1
+ORDER BY 1
+
+question #3
+SELECT DATE_TRUNC(‘week’,e1.occurred_at) AS week,
+ COUNT(CASE WHEN a.event_type=’engagement’ AND a.event_name=’login’ THEN e1.user_id ELSE NULL END) AS weekly_active_user,
+ SUM(CASE WHEN e2.action IS NOT NULL THEN 1 ELSE 0 END) AS weekly_email_open,
+ SUM(CASE WHEN e3.action IS NOT NULL THEN 1 ELSE 0 END) AS weekly_email_clickthrough
+FROM tutorial.yammer_emails e1
+LEFT JOIN tutorial.yammer_events a 
+ ON a.occurred_at = e1.occurred_at
+ AND a.event_type = ‘engagement’
+ AND a.event_name = ‘login’
+LEFT JOIN tutorial.yammer_emails e2
+ ON e2.occurred_at = e1.occurred_at
+ AND e2.user_id = e1.user_id
+ AND e2.action = ‘email_open’
+LEFT JOIN tutorial.yammer_emails e3
+ ON e3.occurred_at = e1.occurred_at
+ AND e3.user_id = e1.user_id
+ AND e3.action = ‘email_clickthrough’
+GROUP BY 1
+ORDER by 1
